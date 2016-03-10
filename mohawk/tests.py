@@ -92,10 +92,11 @@ class TestSender(Base):
         super(TestSender, self).setUp()
         self.url = 'http://site.com/foo?bar=1'
 
-    def Sender(self, method='GET', **kw):
+    def Sender(self, method='GET', content_defaults=True, **kw):
         credentials = kw.pop('credentials', self.credentials)
-        kw.setdefault('content', '')
-        kw.setdefault('content_type', '')
+        if content_defaults:
+            kw.setdefault('content', '')
+            kw.setdefault('content_type', '')
         sender = Sender(credentials, self.url, method, **kw)
         return sender
 
@@ -141,19 +142,17 @@ class TestSender(Base):
         self.receive(sn.request_header, method=method, content=content,
                      content_type='application/json; charset=other')
 
-    @raises(ValueError)
+    @raises(TypeError)
     def test_missing_payload_details(self):
-        self.Sender(method='POST', content=None, content_type=None)
+        self.Sender(method='POST', content_defaults=False)
 
     def test_skip_payload_hashing(self):
         method = 'POST'
         content = '{"bar": "foobs"}'
         content_type = 'application/json'
-        sn = self.Sender(method=method, content=None, content_type=None,
-                         always_hash_content=False)
-        self.receive(sn.request_header, method=method, content=content,
-                     content_type=content_type,
-                     accept_untrusted_content=True)
+        sn = self.Sender(method=method, content=None, content_type=None)
+        self.receive(sn.request_header, method=method, content=None,
+                     content_type=None)
 
     @raises(ValueError)
     def test_cannot_skip_content_only(self):
@@ -480,10 +479,8 @@ class TestReceiver(Base):
 
     def test_respond_with_unhashed_content(self):
         self.receive()
-
-        self.respond(always_hash_content=False, content=None,
-                     content_type=None,
-                     accept_kw=dict(accept_untrusted_content=True))
+        self.respond(content=None, content_type=None,
+                     accept_kw=dict(content=None, content_type=None))
 
     @raises(TokenExpired)
     def test_respond_with_expired_ts(self):
@@ -567,8 +564,7 @@ class TestReceiver(Base):
 
     @raises(MisComputedContentHash)
     def test_unexpected_unhashed_content(self):
-        self.receive(sender_kw=dict(content=None, content_type=None,
-                                    always_hash_content=False))
+        self.receive(sender_kw=dict(content=None, content_type=None))
 
     @raises(ValueError)
     def test_cannot_receive_empty_content_only(self):

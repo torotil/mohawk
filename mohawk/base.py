@@ -26,8 +26,7 @@ class HawkAuthority:
     def _authorize(self, mac_type, parsed_header, resource,
                    their_timestamp=None,
                    timestamp_skew_in_seconds=default_ts_skew_in_seconds,
-                   localtime_offset_in_seconds=0,
-                   accept_untrusted_content=False):
+                   localtime_offset_in_seconds=0):
 
         now = utc_now(offset_in_seconds=localtime_offset_in_seconds)
 
@@ -39,20 +38,10 @@ class HawkAuthority:
                               'theirs: {theirs}'
                               .format(ours=mac, theirs=their_mac))
 
-        if 'hash' not in parsed_header and accept_untrusted_content:
-            # The request did not hash its content.
-            log.debug('NOT calculating/verifiying payload hash '
-                      '(no hash in header)')
-            check_hash = False
-            content_hash = None
-        else:
-            check_hash = True
+        if resource.content is not None:
+            if not their_hash:
+                log.info('request unexpectedly did not hash its content')
             content_hash = resource.gen_content_hash()
-
-        if check_hash and not their_hash:
-            log.info('request unexpectedly did not hash its content')
-
-        if check_hash:
             if not strings_match(content_hash, their_hash):
                 # The hash declared in the header is incorrect.
                 # Content could have been tampered with.
@@ -155,10 +144,13 @@ class Resource:
         self.method = kw.pop('method').upper()
         self.content = kw.pop('content', None)
         self.content_type = kw.pop('content_type', None)
-        self.always_hash_content = kw.pop('always_hash_content', True)
         self.ext = kw.pop('ext', None)
         self.app = kw.pop('app', None)
         self.dlg = kw.pop('dlg', None)
+
+        if (self.content is None) ^ (self.content_type is None):
+            raise ValueError('If either `content` or `content_type` has a '
+                'value both must have a value.')
 
         self.timestamp = str(kw.pop('timestamp', None) or utc_now())
 
@@ -193,13 +185,6 @@ class Resource:
 
     def gen_content_hash(self):
         if self.content is None or self.content_type is None:
-            if self.always_hash_content:
-                # Be really strict about allowing developers to skip content
-                # hashing. If they get this far they may be unintentiionally
-                # skipping it.
-                raise ValueError(
-                    'payload content and/or content_type cannot be '
-                    'empty without an explicit allowance')
             log.debug('NOT hashing content')
             self._content_hash = None
         else:

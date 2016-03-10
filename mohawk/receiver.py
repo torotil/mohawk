@@ -33,18 +33,11 @@ class Receiver(HawkAuthority):
     :param method: Method of the request. E.G. POST, GET
     :type method: str
 
-    :param content=None: Byte string of request body.
-    :type content=None: str
+    :param content: Byte string of request body.
+    :type content: str
 
-    :param content_type=None: content-type header value for request.
-    :type content_type=None: str
-
-    :param accept_untrusted_content=False:
-        When True, allow requests that do not hash their content or
-        allow None type ``content`` and ``content_type``
-        arguments. Read :ref:`skipping-content-checks`
-        to learn more.
-    :type accept_untrusted_content=False: bool
+    :param content_type: content-type header value for request.
+    :type content_type: str
 
     :param localtime_offset_in_seconds=0:
         Seconds to add to local time in case it's out of sync.
@@ -65,11 +58,10 @@ class Receiver(HawkAuthority):
                  request_header,
                  url,
                  method,
-                 content=None,
-                 content_type=None,
+                 content,
+                 content_type,
                  seen_nonce=None,
                  localtime_offset_in_seconds=0,
-                 accept_untrusted_content=False,
                  timestamp_skew_in_seconds=default_ts_skew_in_seconds,
                  **auth_kw):
 
@@ -110,7 +102,6 @@ class Receiver(HawkAuthority):
             'header', parsed_header, resource,
             timestamp_skew_in_seconds=timestamp_skew_in_seconds,
             localtime_offset_in_seconds=localtime_offset_in_seconds,
-            accept_untrusted_content=accept_untrusted_content,
             **auth_kw)
 
         # Now that we verified an incoming request, we can re-use some of its
@@ -120,9 +111,8 @@ class Receiver(HawkAuthority):
         self.resource = resource
 
     def respond(self,
-                content=None,
-                content_type=None,
-                always_hash_content=True,
+                content,
+                content_type,
                 ext=None):
         """
         Respond to the request.
@@ -159,7 +149,6 @@ class Receiver(HawkAuthority):
                             method=self.resource.method,
                             content=content,
                             content_type=content_type,
-                            always_hash_content=always_hash_content,
                             nonce=self.parsed_header['nonce'],
                             timestamp=self.parsed_header['ts'])
 

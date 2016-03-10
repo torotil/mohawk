@@ -361,15 +361,12 @@ checks if you wish.
     By skipping content checks both the sender and receiver are
     susceptible to content tampering.
 
-You can send a request without signing the content by passing this keyword
-argument to a :class:`mohawk.Sender`:
+You can send a request without signing the content by passing ``None`` for both
+``content`` and ``content_type`` to a :class:`mohawk.Sender`:
 
 .. doctest:: usage
 
-    >>> sender = Sender(credentials, url, method, always_hash_content=False)
-
-This says to skip hashing of the ``content`` and ``content_type`` values
-if they are both ``None``.
+    >>> sender = Sender(credentials, url, method, content=None, content_type=None)
 
 Now you'll get an ``Authorization`` header without a ``hash`` attribute:
 
@@ -378,8 +375,8 @@ Now you'll get an ``Authorization`` header without a ``hash`` attribute:
     >>> sender.request_header
     u'Hawk mac="...", id="some-sender", ts="...", nonce="..."'
 
-The :class:`mohawk.Receiver` must also be constructed to
-accept unsigned content with ``accept_untrusted_content=True``:
+The :class:`mohawk.Receiver` must also be constructed with both ``content`` and
+``content_type`` explicitly set to ``None``:
 
 .. doctest:: usage
 
@@ -387,7 +384,8 @@ accept unsigned content with ``accept_untrusted_content=True``:
     ...                     sender.request_header,
     ...                     request['url'],
     ...                     request['method'],
-    ...                     accept_untrusted_content=True)
+    ...                     content=None,
+    ...                     content_type=None)
 
 Logging
 =======

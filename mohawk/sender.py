@@ -23,16 +23,11 @@ class Sender(HawkAuthority):
     :param method: Method of the request. E.G. POST, GET
     :type method: str
 
-    :param content=None: Byte string of request body.
-    :type content=None: str
+    :param content: Byte string of request body.
+    :type content: str
 
-    :param content_type=None: content-type header value for request.
-    :type content_type=None: str
-
-    :param always_hash_content=True:
-        When True, ``content`` and ``content_type`` cannot be None.
-        Read :ref:`skipping-content-checks` to learn more.
-    :type always_hash_content=True: bool
+    :param content_type: content-type header value for request.
+    :type content_type: str
 
     :param nonce=None:
         A string that when coupled with the timestamp will
@@ -68,9 +63,8 @@ class Sender(HawkAuthority):
     def __init__(self, credentials,
                  url,
                  method,
-                 content=None,
-                 content_type=None,
-                 always_hash_content=True,
+                 content,
+                 content_type,
                  nonce=None,
                  ext=None,
                  app=None,
@@ -92,7 +86,6 @@ class Sender(HawkAuthority):
                                      nonce=nonce,
                                      method=method,
                                      content=content,
-                                     always_hash_content=always_hash_content,
                                      timestamp=_timestamp,
                                      content_type=content_type)
 
@@ -102,9 +95,8 @@ class Sender(HawkAuthority):
 
     def accept_response(self,
                         response_header,
-                        content=None,
-                        content_type=None,
-                        accept_untrusted_content=False,
+                        content,
+                        content_type,
                         localtime_offset_in_seconds=0,
                         timestamp_skew_in_seconds=default_ts_skew_in_seconds,
                         **auth_kw):
@@ -116,19 +108,12 @@ class Sender(HawkAuthority):
             such as one created by :class:`mohawk.Receiver`.
         :type response_header: str
 
-        :param content=None: Byte string of the response body received.
-        :type content=None: str
+        :param content: Byte string of the response body received.
+        :type content: str
 
-        :param content_type=None:
+        :param content_type:
             Content-Type header value of the response received.
-        :type content_type=None: str
-
-        :param accept_untrusted_content=False:
-            When True, allow responses that do not hash their content or
-            allow None type ``content`` and ``content_type``
-            arguments. Read :ref:`skipping-content-checks`
-            to learn more.
-        :type accept_untrusted_content=False: bool
+        :type content_type: str
 
         :param localtime_offset_in_seconds=0:
             Seconds to add to local time in case it's out of sync.
@@ -170,7 +155,6 @@ class Sender(HawkAuthority):
             their_timestamp=resource.timestamp,
             timestamp_skew_in_seconds=timestamp_skew_in_seconds,
             localtime_offset_in_seconds=localtime_offset_in_seconds,
-            accept_untrusted_content=accept_untrusted_content,
             **auth_kw)
 
     def reconfigure(self, credentials):
