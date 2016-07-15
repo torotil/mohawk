@@ -3,7 +3,10 @@ import warnings
 from unittest import TestCase
 from base64 import b64decode, urlsafe_b64encode
 
-import mock
+try:
+    from unittest import mock
+except:
+    import mock
 from nose.tools import eq_, raises
 import six
 
